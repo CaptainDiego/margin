@@ -4,6 +4,28 @@ import UniformTypeIdentifiers
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.build()
+        applyAppearance()
+    }
+
+    // MARK: Appearance: 0 follows the system, 1 light, 2 dark.
+
+    private var appearanceChoice: Int {
+        get { UserDefaults.standard.integer(forKey: "appearance") }
+        set { UserDefaults.standard.set(newValue, forKey: "appearance") }
+    }
+
+    private func applyAppearance() {
+        NSApp.appearance = [nil, NSAppearance(named: .aqua), NSAppearance(named: .darkAqua)][min(2, max(0, appearanceChoice))]
+    }
+
+    @objc func setAppearance(_ sender: NSMenuItem) {
+        appearanceChoice = sender.tag
+        applyAppearance()
+    }
+
+    @objc func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        if item.action == #selector(setAppearance(_:)) { item.state = item.tag == appearanceChoice ? .on : .off }
+        return true
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -138,6 +160,12 @@ enum MainMenu {
         view.addItem(withTitle: "Bigger", action: #selector(EditorViewController.makeTextBigger(_:)), keyEquivalent: "=")
         view.addItem(withTitle: "Smaller", action: #selector(EditorViewController.makeTextSmaller(_:)), keyEquivalent: "-")
         view.addItem(withTitle: "Actual Size", action: #selector(EditorViewController.makeTextActualSize(_:)), keyEquivalent: "0")
+        view.addItem(.separator())
+        let appearance = NSMenu(title: "Appearance")
+        view.addItem(withTitle: "Appearance", action: nil, keyEquivalent: "").submenu = appearance
+        for (tag, title) in ["System", "Light", "Dark"].enumerated() {
+            appearance.addItem(withTitle: title, action: #selector(AppDelegate.setAppearance(_:)), keyEquivalent: "").tag = tag
+        }
         view.addItem(.separator())
         item(view, "Enter Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f", [.command, .control])
 

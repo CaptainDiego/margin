@@ -1,0 +1,22 @@
+#!/bin/zsh
+# Builds dist/Margin.dmg (drag to Applications). Version comes from Resources/Info.plist.
+#   ./bin/release            build the DMG
+#   ./bin/release --publish  also tag v<version> and create the GitHub release
+set -euo pipefail
+cd "${0:A:h}/.."
+VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Resources/Info.plist)
+./bin/build
+DMG=dist/Margin.dmg
+STAGE=dist/.dmg-stage
+rm -rf "$STAGE" "$DMG"
+mkdir -p "$STAGE"
+cp -R build/Margin.app "$STAGE/"
+ln -s /Applications "$STAGE/Applications"
+hdiutil create -volname "Margin $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+rm -rf "$STAGE"
+echo "Built $DMG ($(du -h "$DMG" | cut -f1)) for v$VERSION"
+if [[ "${1:-}" == "--publish" ]]; then
+  [[ -z "$(git status --porcelain)" ]] || { echo "Commit your changes first."; exit 1; }
+  git tag "v$VERSION" && git push origin "v$VERSION"
+  gh release create "v$VERSION" "$DMG" --title "Margin v$VERSION" --notes-file dist/notes.md
+fi

@@ -5,14 +5,20 @@ A tiny native Markdown editor for macOS, inspired by
 
 One centered page in IBM Plex Mono. Plain Markdown on disk, styled as you type.
 Markers like `**`, `_`, `~~` and `[](…)` hide until your cursor is on them.
-Follows light/dark mode. Autosaves, and reloads when git or another editor
+Light, dark, or follow the system (View → Appearance). Autosaves, and reloads when git or another editor
 changes the file.
 
 **~530 KB.** No dependencies, no network, no permission prompts.
 
 ## Install
 
-Requires macOS 14+ and the Xcode command line tools.
+**Download:** get `Margin.dmg` from
+[Releases](https://github.com/CaptainDiego/margin/releases/latest), open it and
+drag Margin into Applications. Margin isn't notarized, so on first launch macOS
+blocks it. Go to System Settings → Privacy & Security and click **Open Anyway**.
+To make it your Markdown app, choose Margin → Make Margin the Default for Markdown.
+
+**From source** (macOS 14+, Xcode command line tools):
 
 ```sh
 git clone https://github.com/CaptainDiego/margin && cd margin
