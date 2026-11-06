@@ -18,13 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.appearance = [nil, NSAppearance(named: .aqua), NSAppearance(named: .darkAqua)][min(2, max(0, appearanceChoice))]
     }
 
-    @objc func setAppearance(_ sender: NSMenuItem) {
+    // Not "setAppearance:": that's NSView/NSWindow's own setter, and the menu
+    // action would reach the text view first through the responder chain.
+    @objc func chooseAppearance(_ sender: NSMenuItem) {
         appearanceChoice = sender.tag
         applyAppearance()
     }
 
     @objc func validateMenuItem(_ item: NSMenuItem) -> Bool {
-        if item.action == #selector(setAppearance(_:)) { item.state = item.tag == appearanceChoice ? .on : .off }
+        if item.action == #selector(chooseAppearance(_:)) { item.state = item.tag == appearanceChoice ? .on : .off }
         return true
     }
 
@@ -34,6 +36,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--make-default") { makeDefault(nil) }
         #if DEBUG
         if let path = ProcessInfo.processInfo.environment["MARGIN_SNAPSHOT"] { snapshot(to: path) }
+        if ProcessInfo.processInfo.environment["MARGIN_TOGGLE_APPEARANCE"] != nil {
+            for (i, tag) in [1, 2, 0, 1].enumerated() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5 + Double(i) * 0.7) {
+                    let item = NSMenuItem(); item.tag = tag
+                    print("switching to \(tag)"); fflush(stdout)
+                    NSApp.sendAction(#selector(AppDelegate.chooseAppearance(_:)), to: nil, from: item)
+                }
+            }
+        }
         if ProcessInfo.processInfo.environment["MARGIN_DUMP_MENUS"] != nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 func dump(_ menu: NSMenu, _ indent: String) {
@@ -238,7 +249,7 @@ enum MainMenu {
         let appearance = NSMenu(title: "Appearance")
         view.addItem(withTitle: "Appearance", action: nil, keyEquivalent: "").submenu = appearance
         for (tag, title) in ["System", "Light", "Dark"].enumerated() {
-            appearance.addItem(withTitle: title, action: #selector(AppDelegate.setAppearance(_:)), keyEquivalent: "").tag = tag
+            appearance.addItem(withTitle: title, action: #selector(AppDelegate.chooseAppearance(_:)), keyEquivalent: "").tag = tag
         }
         view.addItem(.separator())
         item(view, "Enter Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f", [.command, .control])
