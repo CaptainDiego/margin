@@ -25,8 +25,6 @@ final class Document: NSDocument {
         window.backgroundColor = Theme.page
         window.minSize = NSSize(width: 480, height: 320)
         window.contentViewController = editor
-        window.setContentSize(NSSize(width: 1000, height: 780))
-        window.isRestorable = true
 
         let controller = EditorWindowController(window: window)
         addWindowController(controller)
@@ -138,6 +136,4 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
     func windowWillReturnUndoManager(_ window: NSWindow) -> UndoManager? {
         document?.undoManager
     }
-
-    override func windowTitle(forDocumentDisplayName displayName: String) -> String { displayName }
 }

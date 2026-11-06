@@ -24,8 +24,6 @@ final class EditorTextView: NSTextView {
         super.mouseDown(with: event)
     }
 
-    override func paste(_ sender: Any?) { pasteAsPlainText(sender) }
-
     /// Right-click menu: Look Up / Translate, Cut, Copy, Paste. Nothing else
     /// (no Writing Tools, Font, Substitutions, Share or web search).
     override func menu(for event: NSEvent) -> NSMenu? {
@@ -38,6 +36,7 @@ final class EditorTextView: NSTextView {
         return menu
     }
 
+    /// Only plain text comes in, whether pasted or dropped.
     override var readablePasteboardTypes: [NSPasteboard.PasteboardType] { [.string] }
 }
 

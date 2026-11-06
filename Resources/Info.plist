@@ -55,8 +55,6 @@
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Inspired by Omawrite. MIT licensed.</string>
 	<key>NSPrincipalClass</key>
