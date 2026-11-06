@@ -46,7 +46,7 @@
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
-				<array><string>md</string><string>markdown</string><string>mdown</string><string>mkd</string></array>
+				<array><string>md</string><string>markdown</string><string>mdown</string><string>mkd</string><string>mkdn</string><string>mdwn</string><string>mdtxt</string><string>mdtext</string></array>
 				<key>public.mime-type</key><array><string>text/markdown</string></array>
 			</dict>
 		</dict>

@@ -161,7 +161,7 @@ final class EditorViewController: NSViewController, NSTextViewDelegate, NSTextSt
         let loc = min(selection.location, length)
         let restored = NSRange(location: loc, length: min(selection.length, length - loc))
         highlighter.selection = restored
-        highlighter.restyleAll()
+        highlighter.restyleAll(progressive: true)
         textView.setSelectedRange(restored)
         lastSelection = restored
         scrollView.contentView.scroll(to: visible)

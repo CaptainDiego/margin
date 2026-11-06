@@ -43,7 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func makeDefault(_ sender: Any?) {
         var types: [UTType] = []
         for id in ["net.daringfireball.markdown"] { if let t = UTType(id) { types.append(t) } }
-        for ext in ["md", "markdown", "mdown", "mkd"] {
+        for ext in ["md", "markdown", "mdown", "mkd", "mkdn", "mdwn", "mdtxt", "mdtext"] {
             if let t = UTType(filenameExtension: ext), !types.contains(t) { types.append(t) }
         }
         let app = Bundle.main.bundleURL

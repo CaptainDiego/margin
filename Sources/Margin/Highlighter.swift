@@ -28,8 +28,24 @@ final class Highlighter {
 
     // MARK: Entry points
 
-    func restyleAll() {
-        run(from: 0, through: storage.length)
+    private var generation = 0
+
+    /// Large documents: style the first screenfuls now, the rest in chunks
+    /// on later run-loop turns, so the window shows without waiting.
+    func restyleAll(progressive: Bool = false) {
+        generation += 1
+        guard progressive, storage.length > 40_000 else {
+            run(from: 0, through: storage.length)
+            return
+        }
+        let current = generation
+        var next = run(from: 0, through: 0, stopAt: 20_000)
+        func step() {
+            guard current == generation, next < storage.length else { return }
+            next = run(from: next, through: 0, stopAt: next + 80_000)
+            DispatchQueue.main.async(execute: step)
+        }
+        DispatchQueue.main.async(execute: step)
     }
 
     /// Restyle the paragraphs an edit touched, then keep going while the fence
@@ -73,13 +89,16 @@ final class Highlighter {
 
     // MARK: Paragraph walk
 
-    private func run(from start: Int, through mustReach: Int) {
+    /// Styles paragraphs from `start`, at least through `mustReach`, then on
+    /// while fence state keeps changing, but never past `stopAt`. Returns where it stopped.
+    @discardableResult
+    private func run(from start: Int, through mustReach: Int, stopAt: Int = .max) -> Int {
         let s = storage.string as NSString
-        guard s.length > 0 else { return }
+        guard s.length > 0 else { return 0 }
         var state = stateEntering(start, in: s)
         var loc = start
         storage.beginEditing()
-        while loc < s.length {
+        while loc < s.length, loc < stopAt || loc < mustReach {
             if loc >= mustReach,
                storage.attribute(.mdState, at: loc, effectiveRange: nil) as? Int == state {
                 break
@@ -89,6 +108,7 @@ final class Highlighter {
             loc = NSMaxRange(line)
         }
         storage.endEditing()
+        return loc
     }
 
     /// The previous paragraph wasn't edited, so its stored state is good.

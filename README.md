@@ -50,3 +50,6 @@ renders the editor to a PNG (`MARGIN_LIGHT`, `MARGIN_CARET=<offset>`,
 `MARGIN_TYPE=<text>` adjust it).
 
 IBM Plex Mono is bundled under the SIL Open Font License 1.1 (`Resources/Fonts/OFL.txt`).
+
+The bundled fonts are subset to Latin, punctuation, arrows, math and box
+drawing (`pyftsubset`); anything else falls back to the system font.

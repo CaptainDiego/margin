@@ -2,11 +2,11 @@
 # Builds build/Margin.app (release, Apple Silicon/Intel native).
 set -euo pipefail
 cd "${0:A:h}/.."
-swift build -c release
+swift build -c release -Xswiftc -Osize
 APP=build/Margin.app
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/Fonts"
-cp "$(swift build -c release --show-bin-path)/Margin" "$APP/Contents/MacOS/Margin"
+strip -x "$(swift build -c release -Xswiftc -Osize --show-bin-path)/Margin" -o "$APP/Contents/MacOS/Margin" 2>/dev/null
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/Fonts/* "$APP/Contents/Resources/Fonts/"
 if [[ ! -f build/AppIcon.icns ]]; then
