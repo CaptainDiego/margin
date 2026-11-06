@@ -1,55 +1,48 @@
 # Margin
 
-A tiny native Markdown writing app for macOS, modeled on
-[Omawrite](https://github.com/omacom/omawrite) (MIT): one centered page in IBM
-Plex Mono, plain Markdown on disk, live styling, and markers (`**`, `_`, `~~`,
-`[](…)`) that only show around the caret. Follows system light/dark.
+A tiny native Markdown editor for macOS, inspired by
+[Omawrite](https://github.com/omacom/omawrite).
 
-## Build & install
+One centered page in IBM Plex Mono. Plain Markdown on disk, styled as you type.
+Markers like `**`, `_`, `~~` and `[](…)` hide until your cursor is on them.
+Follows light/dark mode. Autosaves, and reloads when git or another editor
+changes the file.
+
+**~530 KB.** No dependencies, no network, no permission prompts.
+
+## Install
+
+Requires macOS 14+ and the Xcode command line tools.
 
 ```sh
-./bin/build     # → build/Margin.app
-./bin/install   # → ~/Applications/Margin.app, registered as the default for .md
+git clone https://github.com/CaptainDiego/margin && cd margin
+./bin/install   # builds, copies to ~/Applications, makes it the default for .md
 ```
 
-Open from a terminal with `open -a Margin file.md`.
+## Benchmark
 
-## Behaviour
+Cold open of a file (app not running) until its window is on screen, Apple
+Silicon, median of 6–8 runs:
 
-- Files with a name autosave ~1s after you stop typing. Untitled drafts wait for
-  ⌘S (macOS keeps them safe across quits anyway).
-- If git or another editor changes the file and you have no unsaved edits, it
-  reloads. If you do, macOS warns before you overwrite.
-- Paste is always plain text. No auto-bullets, no smart quotes.
-- Footer: file name, saved state, last-modified time · word count.
+| File | Margin | Sublime Text 4 |
+|---|---|---|
+| 15 KB note | 335 ms | 351 ms |
+| 1 MB file | 376 ms | 378 ms |
+| App size | 0.5 MB | 112 MB |
+
+## Local only
+
+- App Sandbox with no network entitlement: macOS blocks every connection.
+- Reads and writes only the files you open or save yourself.
+- ⌘-click opens `http`, `https` and `mailto` links only.
+- No telemetry, analytics, updates or accounts.
 
 ## Shortcuts
 
-| | |
-|---|---|
-| ⌘N / ⌘O / ⌘S | New, open, save |
-| ⇧⌘S / ⌥⇧⌘S | Duplicate, save as |
-| ⌘B / ⌘I / ⇧⌘X | Toggle bold, italic, strikethrough |
-| ⌘K | Insert link |
-| ⌘-click | Open link |
-| ⌘F / ⌥⌘F / ⌘G | Find, find & replace, next match |
-| ⌘= / ⌘- / ⌘0 | Text size |
-| ⌃⌘F | Full screen |
-| ⌘P | Print |
+⌘B / ⌘I / ⇧⌘X bold, italic, strikethrough · ⌘K link · ⌘F find ·
+⌘= / ⌘- text size · ⌃⌘F full screen · ⌘P print
 
-## Code
+## License
 
-- `Sources/Margin/Highlighter.swift`: incremental Markdown styling plus the
-  TextKit 1 glyph hider that makes markers take no space.
-- `Editor.swift`: the text view, centered 65-character column, footer.
-- `Document.swift`: NSDocument (load/save, autosave, external reloads).
-- `Theme.swift`: Omawrite's colours and type.
-
-Debug: `MARGIN_SNAPSHOT=/tmp/x.png build/Margin.app/Contents/MacOS/Margin file.md`
-renders the editor to a PNG (`MARGIN_LIGHT`, `MARGIN_CARET=<offset>`,
-`MARGIN_TYPE=<text>` adjust it).
-
-IBM Plex Mono is bundled under the SIL Open Font License 1.1 (`Resources/Fonts/OFL.txt`).
-
-The bundled fonts are subset to Latin, punctuation, arrows, math and box
-drawing (`pyftsubset`); anything else falls back to the system font.
+MIT. IBM Plex Mono is bundled under the SIL Open Font License 1.1, subset to
+Latin, punctuation and symbols.

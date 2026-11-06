@@ -221,7 +221,9 @@ final class Highlighter {
             storage.addAttribute(.foregroundColor, value: Theme.marker, range: abs(m.range(at: 1)))
         }
 
-        guard text.contains(where: { "`*_~[".contains($0) }) else { return 0 }
+        // Inline patterns are lazy matches; on a pathological line (a minified
+        // blob, megabytes of asterisks) they'd go quadratic, so leave it plain.
+        guard ns.length <= 10_000, text.contains(where: { "`*_~[".contains($0) }) else { return 0 }
 
         // Code spans first: nothing inside them is markup.
         let codes = Self.codeSpan.matches(in: text, range: all).map { $0.range }

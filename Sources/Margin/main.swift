@@ -8,9 +8,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if CommandLine.arguments.contains("--make-default") { makeDefault(nil) }
+        #if DEBUG
         if let path = ProcessInfo.processInfo.environment["MARGIN_SNAPSHOT"] { snapshot(to: path) }
+        #endif
     }
 
+    #if DEBUG
     /// Debug aid: renders the front window to a PNG (no Screen Recording permission needed).
     private func snapshot(to path: String) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -36,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    #endif
 
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { true }
 

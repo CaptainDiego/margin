@@ -17,7 +17,7 @@
 	<key>NSSupportsAutomaticTermination</key><true/>
 	<key>NSSupportsSuddenTermination</key><false/>
 	<key>ATSApplicationFontsPath</key><string>Fonts</string>
-	<key>NSHumanReadableCopyright</key><string>Modeled on Omawrite (MIT). IBM Plex Mono under the SIL OFL 1.1.</string>
+	<key>NSHumanReadableCopyright</key><string>Inspired by Omawrite. MIT licensed.</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

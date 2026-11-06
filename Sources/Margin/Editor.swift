@@ -13,7 +13,10 @@ final class EditorTextView: NSTextView {
             let index = characterIndexForInsertion(at: point)
             if index < storage.length,
                let link = storage.attribute(.mdLink, at: index, effectiveRange: nil) as? String,
-               let url = URL(string: link), url.scheme != nil {
+               let url = URL(string: link),
+               let scheme = url.scheme?.lowercased(), ["http", "https", "mailto"].contains(scheme) {
+                // Only web and mail links: a document can't make Margin open
+                // local files, apps or custom URL schemes.
                 NSWorkspace.shared.open(url)
                 return
             }
