@@ -10,15 +10,21 @@ extension Timer { func fire2() { RunLoop.main.add(self, forMode: .eventTracking)
 
 extension AppDelegate {
     func runDebugHooks() {
-    if let path = ProcessInfo.processInfo.environment["MARGIN_SNAPSHOT"] { snapshot(to: path) }
-    if ProcessInfo.processInfo.environment["MARGIN_TOGGLE_APPEARANCE"] != nil {
-        for (i, tag) in [1, 2, 0, 1].enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5 + Double(i) * 0.7) {
-                let item = NSMenuItem(); item.tag = tag
-                print("switching to \(tag)"); fflush(stdout)
+        if let path = ProcessInfo.processInfo.environment["MARGIN_SNAPSHOT"] { snapshot(to: path) }
+        if ProcessInfo.processInfo.environment["MARGIN_TOGGLE_APPEARANCE"] != nil {
+            // Shares the real app's settings, so put the user's choice back afterwards.
+            let original = UserDefaults.standard.integer(forKey: "appearance")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
+                let item = NSMenuItem(); item.tag = original
                 NSApp.sendAction(#selector(AppDelegate.chooseAppearance(_:)), to: nil, from: item)
             }
-        }
+            for (i, tag) in [1, 2, 0, 1].enumerated() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5 + Double(i) * 0.7) {
+                    let item = NSMenuItem(); item.tag = tag
+                    print("switching to \(tag)"); fflush(stdout)
+                    NSApp.sendAction(#selector(AppDelegate.chooseAppearance(_:)), to: nil, from: item)
+                }
+            }
     }
     if ProcessInfo.processInfo.environment["MARGIN_DUMP_MENUS"] != nil {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
