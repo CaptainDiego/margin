@@ -4,10 +4,10 @@ set -euo pipefail
 cd "${0:A:h}/.."
 ./bin/build
 DEST="$HOME/Applications/Margin.app"
-osascript -e 'tell application id "com.diegogilon.margin" to quit' >/dev/null 2>&1 || true
+swift bin/quit.swift || RESTART=1
 mkdir -p "$HOME/Applications"
 rm -rf "$DEST"
 cp -R build/Margin.app "$DEST"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$DEST"
-open -a "$DEST" --args --make-default
+if [[ -n "${RESTART:-}" ]]; then echo "Installed. Quit Margin (⌘Q) and reopen it to use the new version."; else open -a "$DEST" --args --make-default; fi
 echo "Installed $DEST"

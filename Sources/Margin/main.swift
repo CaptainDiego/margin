@@ -46,7 +46,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         if let sub = item.submenu, indent.count < 4 { dump(sub, indent + "  ") }
                     }
                 }
-                dump(NSApp.mainMenu!, "")
+                NotificationCenter.default.addObserver(forName: NSMenu.didAddItemNotification, object: nil, queue: nil) { note in
+                    let menu = note.object as! NSMenu
+                    let i = note.userInfo?["NSMenuItemIndex"] as? Int ?? -1
+                    print("ADDED to \(menu.title): \(i < menu.items.count && i >= 0 ? menu.items[i].title : "?")")
+                }
+                print("== at launch"); dump(NSApp.mainMenu!, "")
+                let edit = NSApp.mainMenu!.item(withTitle: "Edit")!.submenu!
+                Timer.scheduledTimer(withTimeInterval: 0.7, repeats: false) { _ in edit.cancelTracking() }.fire2()
+                edit.popUp(positioning: nil, at: .zero, in: NSApp.orderedWindows.first?.contentView)
+                print("== after opening Edit"); dump(edit, "  ")
+                if let tv = NSApp.windows.compactMap({ ($0.contentViewController as? EditorViewController)?.textView }).first {
+                    tv.selectAll(nil)
+                    let point = tv.convert(NSPoint(x: tv.textContainerInset.width + 10, y: tv.textContainerInset.height + 10), to: nil)
+                    let ev = NSEvent.mouseEvent(with: .rightMouseDown, location: point, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: tv.window!.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1)!
+                    print("== context menu", tv.menu(for: ev) == nil ? "nil" : "")
+                    if let m = tv.menu(for: ev) { dump(m, "  ") }
+                }
                 fflush(stdout)
             }
         }
@@ -113,6 +129,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// macOS injects Writing Tools, AutoFill, Dictation, Emoji & Symbols and its own
 /// fn-F full screen item into every app's menus. Margin keeps its menus to what
 /// it does, so those are removed whenever a menu is about to show.
+#if DEBUG
+extension Timer { func fire2() { RunLoop.main.add(self, forMode: .eventTracking) } }
+#endif
+
 final class MenuCleaner: NSObject, NSMenuDelegate {
     static let shared = MenuCleaner()
     private static let blocked: Set<String> = ["showWritingTools:", "startDictation:", "orderFrontCharacterPalette:"]

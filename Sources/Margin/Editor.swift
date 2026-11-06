@@ -26,9 +26,14 @@ final class EditorTextView: NSTextView {
 
     override func paste(_ sender: Any?) { pasteAsPlainText(sender) }
 
-    /// Right-click menu without the system's Writing Tools, AutoFill and friends.
+    /// Right-click menu: Look Up / Translate, Cut, Copy, Paste. Nothing else
+    /// (no Writing Tools, Font, Substitutions, Share or web search).
     override func menu(for event: NSEvent) -> NSMenu? {
         guard let menu = super.menu(for: event) else { return nil }
+        let keep: Set<String> = ["_rvMenuItemAction", "cut:", "copy:", "paste:"]
+        for item in menu.items.reversed() where !item.isSeparatorItem {
+            if !keep.contains(item.action.map(NSStringFromSelector) ?? "") { menu.removeItem(item) }
+        }
         MenuCleaner.shared.clean(menu)
         return menu
     }
