@@ -123,8 +123,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for type in types {
             group.enter()
             NSWorkspace.shared.setDefaultApplication(at: app, toOpen: type) { error in
-                if let error { failures.append("\(type.identifier): \(error.localizedDescription)") }
-                group.leave()
+                // Called on a background queue; collect results on main.
+                DispatchQueue.main.async {
+                    if let error { failures.append("\(type.identifier): \(error.localizedDescription)") }
+                    group.leave()
+                }
             }
         }
         group.notify(queue: .main) {
@@ -137,13 +140,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// macOS injects Writing Tools, AutoFill, Dictation, Emoji & Symbols and its own
-/// fn-F full screen item into every app's menus. Margin keeps its menus to what
-/// it does, so those are removed whenever a menu is about to show.
 #if DEBUG
 extension Timer { func fire2() { RunLoop.main.add(self, forMode: .eventTracking) } }
 #endif
 
+/// macOS injects Writing Tools, AutoFill, Dictation, Emoji & Symbols and its own
+/// fn-F full screen item into every app's menus. Margin keeps its menus to what
+/// it does, so those are removed whenever a menu is about to show.
 final class MenuCleaner: NSObject, NSMenuDelegate {
     static let shared = MenuCleaner()
     private static let blocked: Set<String> = ["showWritingTools:", "startDictation:", "orderFrontCharacterPalette:"]

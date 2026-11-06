@@ -7,7 +7,6 @@ enum Theme {
     static let marker = dynamic(light: 0xAEB1B5, dark: 0x4F525A)
     static let muted = dynamic(light: 0xAEB1B5, dark: 0x909191)
     static let link = dynamic(light: 0x2077B2, dark: 0x5584AA)
-    static let code = dynamic(light: 0xF3F3F3, dark: 0x1C1C1C)
     static let selection = dynamic(light: 0x2077B2, dark: 0x186A9A, lightAlpha: 0.22, darkAlpha: 0.55)
 
     private static func dynamic(light: UInt32, dark: UInt32,

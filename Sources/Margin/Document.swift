@@ -3,6 +3,9 @@ import AppKit
 @objc(Document)
 final class Document: NSDocument {
     private var text = ""
+    /// Written back in the encoding it was read in, so a Latin-1 or UTF-16
+    /// file isn't silently re-encoded by an edit.
+    private var encoding: String.Encoding = .utf8
     private(set) var editor: EditorViewController?
     private var autosaveTimer: Timer?
 
@@ -35,17 +38,24 @@ final class Document: NSDocument {
     }
 
     override func read(from data: Data, ofType typeName: String) throws {
-        guard let string = String(data: data, encoding: .utf8)
-                ?? String(data: data, encoding: .isoLatin1) else {
+        let bom16 = data.starts(with: [0xFF, 0xFE]) || data.starts(with: [0xFE, 0xFF])
+        let candidates: [String.Encoding] = bom16 ? [.utf16] : [.utf8, .isoLatin1]
+        guard let (string, used) = candidates.lazy
+                .compactMap({ e in String(data: data, encoding: e).map { ($0, e) } }).first else {
             throw CocoaError(.fileReadInapplicableStringEncoding)
         }
         text = string
+        encoding = used
         editor?.load(string)
     }
 
     override func data(ofType typeName: String) throws -> Data {
         if let editor { text = editor.string }
-        return Data(text.utf8)
+        guard let data = text.data(using: encoding) else {
+            // e.g. an emoji typed into a Latin-1 file: refuse rather than mangle it.
+            throw CocoaError(.fileWriteInapplicableStringEncoding)
+        }
+        return data
     }
 
     // MARK: Saving
