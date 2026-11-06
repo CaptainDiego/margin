@@ -1,4 +1,4 @@
-// Draws the app icon: Omawrite's page colors with a Plex Mono "#".
+// Draws the app icon: a Plex Mono "#" on the dark page, with an orange caret.
 import AppKit
 let out = CommandLine.arguments[1], fontPath = CommandLine.arguments[2]
 CTFontManagerRegisterFontsForURL(URL(fileURLWithPath: fontPath) as CFURL, .process, nil)
@@ -17,7 +17,7 @@ for (name, px) in [("16x16",16),("16x16@2x",32),("32x32",32),("32x32@2x",64),("1
     let hash = NSAttributedString(string: "#", attributes: attrs)
     let size = hash.size()
     hash.draw(at: NSPoint(x: (s - size.width)/2, y: (s - size.height)/2 + s*0.01))
-    NSColor(srgbRed: 0.333, green: 0.518, blue: 0.667, alpha: 1).setFill()
+    NSColor(srgbRed: 0.949, green: 0.647, blue: 0.255, alpha: 1).setFill() // Theme.link (dark)
     NSRect(x: s*0.5 + size.width*0.42, y: s*0.33, width: max(1, s*0.035), height: s*0.34).fill()
     NSGraphicsContext.restoreGraphicsState()
     try! rep.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: "\(out)/icon_\(name).png"))
