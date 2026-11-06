@@ -26,6 +26,13 @@ final class EditorTextView: NSTextView {
 
     override func paste(_ sender: Any?) { pasteAsPlainText(sender) }
 
+    /// Right-click menu without the system's Writing Tools, AutoFill and friends.
+    override func menu(for event: NSEvent) -> NSMenu? {
+        guard let menu = super.menu(for: event) else { return nil }
+        MenuCleaner.shared.clean(menu)
+        return menu
+    }
+
     override var readablePasteboardTypes: [NSPasteboard.PasteboardType] { [.string] }
 }
 
@@ -88,6 +95,7 @@ final class EditorViewController: NSViewController, NSTextViewDelegate, NSTextSt
         tv.isAutomaticTextCompletionEnabled = false
         tv.smartInsertDeleteEnabled = false
         tv.isContinuousSpellCheckingEnabled = false
+        if #available(macOS 15.0, *) { tv.writingToolsBehavior = .none }
         tv.drawsBackground = true
         tv.backgroundColor = Theme.page
         tv.insertionPointColor = Theme.text

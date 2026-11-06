@@ -29,9 +29,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        MenuCleaner.shared.cleanAll()
+        DispatchQueue.main.async { MenuCleaner.shared.cleanAll() }
         if CommandLine.arguments.contains("--make-default") { makeDefault(nil) }
         #if DEBUG
         if let path = ProcessInfo.processInfo.environment["MARGIN_SNAPSHOT"] { snapshot(to: path) }
+        if ProcessInfo.processInfo.environment["MARGIN_DUMP_MENUS"] != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                func dump(_ menu: NSMenu, _ indent: String) {
+                    menu.update()
+                    for item in menu.items {
+                        let mods = item.keyEquivalentModifierMask
+                        let key = item.keyEquivalent.isEmpty ? "" : (mods.contains(.control) ? "⌃" : "") + (mods.contains(.option) ? "⌥" : "")
+                            + (mods.contains(.shift) ? "⇧" : "") + (mods.contains(.command) ? "⌘" : "") + (mods.contains(.function) ? "fn" : "") + item.keyEquivalent
+                        print(indent + (item.isSeparatorItem ? "----" : item.title), key, item.action.map { NSStringFromSelector($0) } ?? "")
+                        if let sub = item.submenu, indent.count < 4 { dump(sub, indent + "  ") }
+                    }
+                }
+                dump(NSApp.mainMenu!, "")
+                fflush(stdout)
+            }
+        }
         #endif
     }
 
@@ -92,6 +110,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+/// macOS injects Writing Tools, AutoFill, Dictation, Emoji & Symbols and its own
+/// fn-F full screen item into every app's menus. Margin keeps its menus to what
+/// it does, so those are removed whenever a menu is about to show.
+final class MenuCleaner: NSObject, NSMenuDelegate {
+    static let shared = MenuCleaner()
+    private static let blocked: Set<String> = ["showWritingTools:", "startDictation:", "orderFrontCharacterPalette:"]
+
+    func menuNeedsUpdate(_ menu: NSMenu) { clean(menu) }
+
+    func cleanAll() {
+        for item in NSApp.mainMenu?.items ?? [] {
+            guard let menu = item.submenu else { continue }
+            menu.delegate = self
+            clean(menu)
+        }
+    }
+
+    func clean(_ menu: NSMenu) {
+        for item in menu.items.reversed() where shouldRemove(item) { menu.removeItem(item) }
+        var previousWasSeparator = true
+        for item in menu.items {
+            if item.isSeparatorItem, previousWasSeparator { menu.removeItem(item) }
+            else { previousWasSeparator = item.isSeparatorItem; item.isAlternate = false }
+        }
+        if let last = menu.items.last, last.isSeparatorItem { menu.removeItem(last) }
+    }
+
+    private func shouldRemove(_ item: NSMenuItem) -> Bool {
+        let action = item.action.map(NSStringFromSelector) ?? ""
+        let children = item.submenu?.items.compactMap { $0.action.map(NSStringFromSelector) } ?? []
+        if Self.blocked.contains(action) { return true }
+        if children.contains("showWritingTools:") || children.contains(where: { $0.hasPrefix("_handleInsertFrom") }) { return true }
+        if action == "toggleFullScreen:" {
+            let mods = item.keyEquivalentModifierMask.intersection(.deviceIndependentFlagsMask)
+            return !(item.keyEquivalent == "f" && mods == [.command, .control])
+        }
+        return false
+    }
+}
+
 enum MainMenu {
     static func build() -> NSMenu {
         let main = NSMenu()
@@ -145,10 +203,6 @@ enum MainMenu {
         findItem(find, "Find Next", .nextMatch, "g")
         findItem(find, "Find Previous", .previousMatch, "g", [.command, .shift])
         findItem(find, "Use Selection for Find", .setSearchString, "e")
-        let spelling = NSMenu(title: "Spelling")
-        edit.addItem(withTitle: "Spelling", action: nil, keyEquivalent: "").submenu = spelling
-        spelling.addItem(withTitle: "Show Spelling and Grammar", action: #selector(NSText.showGuessPanel(_:)), keyEquivalent: ":")
-        spelling.addItem(withTitle: "Check Spelling While Typing", action: #selector(NSTextView.toggleContinuousSpellChecking(_:)), keyEquivalent: "")
 
         let format = submenu(main, "Format")
         format.addItem(withTitle: "Bold", action: #selector(EditorViewController.toggleMarkdownBold(_:)), keyEquivalent: "b")
@@ -200,6 +254,10 @@ enum MainMenu {
     }
 }
 
+UserDefaults.standard.register(defaults: [
+    "NSDisabledDictationMenuItem": true,
+    "NSDisabledCharacterPaletteMenuItem": true,
+])
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate
